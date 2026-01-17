@@ -1,0 +1,47 @@
+# ✅ MeetLah! Branding - Quick Fix Applied!
+
+## What Changed
+
+Your app now shows **"MeetLah!"** instead of "v0 App" everywhere! 🎉
+
+## Files Updated
+
+✅ `/app/layout.tsx` - App metadata and title
+✅ `/public/favicon.svg` - NEW browser tab icon
+✅ `/public/icon.svg` - UPDATED app icon  
+✅ `/public/apple-icon.svg` - NEW iOS icon
+✅ `/public/manifest.json` - NEW PWA config
+
+## See the Changes
+
+**IMPORTANT: Restart your dev server!**
+
+```bash
+# 1. Stop the current server (Ctrl+C or Cmd+C)
+# 2. Start it again
+pnpm dev
+```
+
+Then:
+1. Go to `http://localhost:3000`
+2. Look at your browser tab - should say **"MeetLah!"** with a blue calendar icon 📅
+
+## If You Still See "v0"
+
+Try this:
+1. **Hard refresh:** Press `Cmd + Shift + R` (Mac) or `Ctrl + Shift + R` (Windows)
+2. Or close the tab and open a new one
+
+## Test Your Icons
+
+Visit: `http://localhost:3000/icon-test.html`
+
+You should see all three icons displayed!
+
+## That's It!
+
+Your app is now fully branded as **MeetLah!** 🚀
+
+---
+
+Need help? Check `BRANDING_UPDATE.md` for detailed info.

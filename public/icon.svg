@@ -1,0 +1,19 @@
+<svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background circle -->
+  <circle cx="16" cy="16" r="16" fill="#3b82f6"/>
+  
+  <!-- Calendar icon -->
+  <rect x="8" y="10" width="16" height="14" rx="2" fill="white"/>
+  <rect x="8" y="10" width="16" height="4" rx="2" fill="#1e40af"/>
+  
+  <!-- Calendar grid -->
+  <line x1="12" y1="16" x2="12" y2="22" stroke="#3b82f6" stroke-width="0.5"/>
+  <line x1="16" y1="16" x2="16" y2="22" stroke="#3b82f6" stroke-width="0.5"/>
+  <line x1="20" y1="16" x2="20" y2="22" stroke="#3b82f6" stroke-width="0.5"/>
+  <line x1="10" y1="18" x2="22" y2="18" stroke="#3b82f6" stroke-width="0.5"/>
+  <line x1="10" y1="20" x2="22" y2="20" stroke="#3b82f6" stroke-width="0.5"/>
+  
+  <!-- Fire emoji accent -->
+  <circle cx="22" cy="10" r="4" fill="#ef4444"/>
+  <path d="M22 8 C23 9, 23 10, 22 11 C21 10, 21 9, 22 8 Z" fill="#fbbf24"/>
+</svg>
