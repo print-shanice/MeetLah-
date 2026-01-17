@@ -15,13 +15,35 @@ interface PunishmentCardProps {
   onCompletePunishment: (punishmentId: string) => Promise<void>
 }
 
+// Format date consistently across server and client
+function formatDate(dateString: string): string {
+  const date = new Date(dateString)
+  const day = date.getDate().toString().padStart(2, '0')
+  const month = (date.getMonth() + 1).toString().padStart(2, '0')
+  const year = date.getFullYear()
+  return `${day}/${month}/${year}`
+}
+
 export function PunishmentCard({ punishments, currentUserId, onCompletePunishment }: PunishmentCardProps) {
   const [completing, setCompleting] = useState<string | null>(null)
+
+  // Debug logging
+  console.log('=== PUNISHMENT CARD DEBUG ===')
+  console.log('Punishments received:', punishments)
+  console.log('Punishments count:', punishments.length)
+  console.log('Current user ID:', currentUserId)
 
   // Filter punishments for the current user
   const myPunishments = punishments.filter(p => p.user_id === currentUserId)
   const pendingPunishments = myPunishments.filter(p => !p.completed)
   const completedPunishments = myPunishments.filter(p => p.completed)
+
+  console.log('My punishments:', myPunishments)
+  console.log('My punishments count:', myPunishments.length)
+  console.log('Pending:', pendingPunishments.length)
+  console.log('Completed:', completedPunishments.length)
+  console.log('Will show card?:', myPunishments.length > 0)
+  console.log('=============================')
 
   const handleComplete = async (punishmentId: string) => {
     setCompleting(punishmentId)
@@ -38,8 +60,11 @@ export function PunishmentCard({ punishments, currentUserId, onCompletePunishmen
 
   // Don't show card if no punishments
   if (myPunishments.length === 0) {
+    console.log('⚠️ PUNISHMENT CARD: Not rendering - no punishments for current user')
     return null
   }
+
+  console.log('✅ PUNISHMENT CARD: Rendering with', myPunishments.length, 'punishments')
 
   return (
     <Card className={pendingPunishments.length > 0 ? "border-yellow-500 border-2" : ""}>
@@ -63,25 +88,29 @@ export function PunishmentCard({ punishments, currentUserId, onCompletePunishmen
             {pendingPunishments.map((punishment) => (
               <div
                 key={punishment.id}
-                className="flex items-start gap-3 p-4 rounded-lg border-2 border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20"
+                className="flex flex-col gap-3 p-4 rounded-lg border-2 border-yellow-500/50 bg-yellow-50 dark:bg-yellow-950/20"
               >
-                <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-foreground">
-                    {punishment.punishment_text}
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Assigned {new Date(punishment.assigned_at).toLocaleDateString()}
-                  </p>
+                <div className="flex items-start gap-3">
+                  <AlertCircle className="h-5 w-5 text-yellow-500 mt-0.5 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-foreground">
+                      {punishment.punishment_text}
+                    </p>
+                  </div>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => handleComplete(punishment.id)}
-                  disabled={completing === punishment.id}
-                  className="flex-shrink-0"
-                >
-                  {completing === punishment.id ? "Completing..." : "Mark Done"}
-                </Button>
+                <div className="flex items-center justify-between gap-3 ml-8">
+                  <p className="text-xs text-muted-foreground">
+                     {formatDate(punishment.assigned_at)}
+                  </p>
+                  <Button
+                    size="sm"
+                    onClick={() => handleComplete(punishment.id)}
+                    disabled={completing === punishment.id}
+                    className="flex-shrink-0"
+                  >
+                    {completing === punishment.id ? "Completing..." : "Mark Done"}
+                  </Button>
+                </div>
               </div>
             ))}
           </div>
@@ -106,7 +135,7 @@ export function PunishmentCard({ punishments, currentUserId, onCompletePunishmen
                     {punishment.punishment_text}
                   </p>
                   <p className="text-xs text-muted-foreground mt-1">
-                    Completed {new Date(punishment.completed_at!).toLocaleDateString()}
+                    Completed {formatDate(punishment.completed_at!)}
                   </p>
                 </div>
               </div>

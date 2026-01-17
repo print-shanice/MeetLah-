@@ -112,9 +112,9 @@ export function CalendarApp({
   const [showPunishmentModal, setShowPunishmentModal] = useState(false)
   const [visibleUsers, setVisibleUsers] = useState<string[]>(members.map((m) => m.id))
 
-  // Extract all punishments from all events
+  // Extract all punishments from all events and transform to the format expected by PunishmentCard
   const allPunishments = initialEvents.flatMap(event => 
-    event.punishments.map(p => ({
+    (event.punishments || []).map(p => ({
       id: p.id,
       user_id: p.userId,
       punishment_text: p.punishmentText,
@@ -129,6 +129,14 @@ export function CalendarApp({
       }
     }))
   )
+
+  // Debug logging for punishments
+  console.log('=== PUNISHMENT DEBUG ===')
+  console.log('Initial events count:', initialEvents.length)
+  console.log('All punishments extracted:', allPunishments.length)
+  console.log('Current user ID:', currentUserId)
+  console.log('User punishments:', allPunishments.filter(p => p.user_id === currentUserId))
+  console.log('========================')
 
   // Transform events to the format expected by calendar components
   const transformedEvents = initialEvents.map((event) => {
@@ -194,18 +202,41 @@ export function CalendarApp({
   }
 
   const handleEventClick = (event: any) => {
+    console.log('=== EVENT CLICK DEBUG ===')
+    console.log('Clicked event:', event)
+    console.log('Event type:', event.type)
+    console.log('Event end date:', event.endDate)
+    console.log('Current time:', new Date())
+    console.log('Is past?:', event.endDate < new Date())
+    
     const originalEvent = initialEvents.find((e) => e.id === event.id)
+    console.log('Found original event:', originalEvent)
+    
     if (originalEvent) {
       setSelectedEvent(originalEvent)
       setSelectedDate(new Date(originalEvent.startTime))
       
       // For past meetup events, show attendance modal instead
-      if (originalEvent.type === "meetup" && new Date(originalEvent.endTime) < new Date()) {
+      const now = new Date()
+      const eventEnd = new Date(originalEvent.endTime)
+      
+      console.log('Original event type:', originalEvent.type)
+      console.log('Original event end time:', originalEvent.endTime)
+      console.log('Event end date object:', eventEnd)
+      console.log('Is meetup?:', originalEvent.type === "meetup")
+      console.log('Has ended?:', eventEnd < now)
+      
+      if (originalEvent.type === "meetup" && eventEnd < now) {
+        console.log('✅ Opening Attendance Modal')
         setShowAttendanceModal(true)
+        setShowEventModal(false)
       } else {
+        console.log('Opening Event Modal')
         setShowEventModal(true)
+        setShowAttendanceModal(false)
       }
     }
+    console.log('========================')
   }
 
   const handleMarkAttendance = async (participantId: string, wasLate: boolean) => {
@@ -220,10 +251,18 @@ export function CalendarApp({
   const handleAssignPunishment = async (userId: string, punishment: string) => {
     if (!selectedEvent) return
     
+    console.log('=== ASSIGNING PUNISHMENT ===')
+    console.log('Event ID:', selectedEvent.id)
+    console.log('User ID:', userId)
+    console.log('Punishment:', punishment)
+    
     startTransition(async () => {
       const result = await assignPunishment(selectedEvent.id, userId, punishment)
       if (!result.error) {
+        console.log('✅ Punishment assigned successfully')
         router.refresh()
+      } else {
+        console.error('❌ Failed to assign punishment:', result.error)
       }
     })
   }
@@ -420,14 +459,42 @@ export function CalendarApp({
       {showAttendanceModal && selectedEvent && selectedEvent.type === "meetup" && (
         <AttendanceModal
           event={{
-            ...selectedEvent,
+            id: selectedEvent.id,
+            calendar_id: calendar.id,
+            user_id: selectedEvent.userId,
+            title: selectedEvent.title,
+            start_time: selectedEvent.startTime,
+            end_time: selectedEvent.endTime,
+            location: selectedEvent.location,
+            type: selectedEvent.type,
+            created_at: "",
+            updated_at: "",
             participants: selectedEvent.participants?.map(p => ({
-              ...p,
+              id: p.id,
+              event_id: selectedEvent.id,
+              user_id: p.userId,
+              was_late: p.wasLate,
+              marked_at: p.markedAt,
               user: {
                 id: p.user.id,
-                full_name: p.user.fullName,
                 email: p.user.email,
+                full_name: p.user.fullName,
                 avatar_url: p.user.avatar,
+              }
+            })) || [],
+            punishments: selectedEvent.punishments?.map(pun => ({
+              id: pun.id,
+              event_id: selectedEvent.id,
+              user_id: pun.userId,
+              punishment_text: pun.punishmentText,
+              assigned_at: pun.assignedAt,
+              completed: pun.completed,
+              completed_at: pun.completedAt,
+              user: {
+                id: pun.user.id,
+                email: pun.user.email,
+                full_name: pun.user.fullName,
+                avatar_url: pun.user.avatar,
               }
             })) || []
           }}
@@ -437,6 +504,7 @@ export function CalendarApp({
             setSelectedEvent(null)
           }}
           onSave={handleMarkAttendance}
+          onAssignPunishment={handleAssignPunishment}
           currentUserId={currentUserId}
         />
       )}
@@ -444,22 +512,41 @@ export function CalendarApp({
       {showPunishmentModal && selectedEvent && selectedEvent.type === "meetup" && (
         <PunishmentModal
           event={{
-            ...selectedEvent,
+            id: selectedEvent.id,
+            calendar_id: calendar.id,
+            user_id: selectedEvent.userId,
+            title: selectedEvent.title,
+            start_time: selectedEvent.startTime,
+            end_time: selectedEvent.endTime,
+            location: selectedEvent.location,
+            type: selectedEvent.type,
+            created_at: "",
+            updated_at: "",
             participants: selectedEvent.participants?.map(p => ({
-              ...p,
+              id: p.id,
+              event_id: selectedEvent.id,
+              user_id: p.userId,
+              was_late: p.wasLate,
+              marked_at: p.markedAt,
               user: {
                 id: p.user.id,
-                full_name: p.user.fullName,
                 email: p.user.email,
+                full_name: p.user.fullName,
                 avatar_url: p.user.avatar,
               }
             })) || [],
             punishments: selectedEvent.punishments?.map(pun => ({
-              ...pun,
+              id: pun.id,
+              event_id: selectedEvent.id,
+              user_id: pun.userId,
+              punishment_text: pun.punishmentText,
+              assigned_at: pun.assignedAt,
+              completed: pun.completed,
+              completed_at: pun.completedAt,
               user: {
                 id: pun.user.id,
-                full_name: pun.user.fullName,
                 email: pun.user.email,
+                full_name: pun.user.fullName,
                 avatar_url: pun.user.avatar,
               }
             })) || []

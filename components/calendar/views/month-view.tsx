@@ -53,7 +53,7 @@ export function MonthView({ currentDate, events, users, onDateClick, onEventClic
   }
 
   const isToday = (date: Date) => {
-    const today = new Date(2026, 0, 17)
+    const today = new Date()
     return (
       date.getDate() === today.getDate() &&
       date.getMonth() === today.getMonth() &&

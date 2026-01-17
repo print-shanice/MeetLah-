@@ -21,6 +21,7 @@ interface AttendanceModalProps {
   isOpen: boolean
   onClose: () => void
   onSave: (participantId: string, wasLate: boolean) => Promise<void>
+  onAssignPunishment?: (userId: string, punishment: string) => Promise<void>
   currentUserId: string
 }
 
@@ -29,6 +30,7 @@ export function AttendanceModal({
   isOpen,
   onClose,
   onSave,
+  onAssignPunishment,
   currentUserId,
 }: AttendanceModalProps) {
   const [marking, setMarking] = useState<{ [key: string]: boolean | null }>({})
@@ -44,20 +46,49 @@ export function AttendanceModal({
     setMarking((prev) => ({ ...prev, [participantId]: wasLate }))
   }
 
+  const getRandomPunishment = () => {
+    return PUNISHMENT_LIST[Math.floor(Math.random() * PUNISHMENT_LIST.length)]
+  }
+
   const handleSaveAll = async () => {
     setSaving(true)
     try {
+      console.log('=== SAVING ATTENDANCE ===')
+      console.log('Marking state:', marking)
+      
       // Save all marked attendance
       for (const [participantId, wasLate] of Object.entries(marking)) {
         if (wasLate !== null) {
+          console.log(`Marking participant ${participantId} as ${wasLate ? 'LATE' : 'ON TIME'}`)
           await onSave(participantId, wasLate)
+          
+          // If marked as late, assign punishment
+          if (wasLate && onAssignPunishment) {
+            const participant = event.participants?.find(p => p.id === participantId)
+            if (participant) {
+              // Check if already has punishment
+              const existingPunishment = event.punishments?.find(
+                p => p.user_id === participant.user_id
+              )
+              
+              if (!existingPunishment) {
+                const punishment = getRandomPunishment()
+                console.log(`Assigning punishment to user ${participant.user_id}: ${punishment}`)
+                await onAssignPunishment(participant.user_id, punishment)
+              } else {
+                console.log(`User ${participant.user_id} already has punishment`)
+              }
+            }
+          }
         }
       }
+      
+      console.log('=== ATTENDANCE SAVED ===')
       toast.success("Attendance marked successfully!")
       onClose()
     } catch (error) {
       toast.error("Failed to mark attendance")
-      console.error(error)
+      console.error('Attendance save error:', error)
     } finally {
       setSaving(false)
     }
@@ -131,7 +162,7 @@ export function AttendanceModal({
           <Button variant="outline" onClick={onClose}>
             Cancel
           </Button>
-          <Button onClick={handleSaveAll} disabled={saving}>
+          <Button onClick={handleSaveAll} disabled={saving || Object.keys(marking).length === 0}>
             {saving ? "Saving..." : "Save Attendance"}
           </Button>
         </DialogFooter>
