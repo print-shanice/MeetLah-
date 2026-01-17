@@ -8,7 +8,7 @@ const _geistMono = Geist_Mono({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: {
-    default: 'MeetLah! - Simplify Plans with Friends',
+    default: 'MeetLah!',
     template: '%s | MeetLah!',
   },
   description: 'Track availability, maintain monthly streaks, and ensure punctuality with your friend group. Create shared calendars and never miss a meetup!',

@@ -51,7 +51,7 @@ export function EventModal({
   const [location, setLocation] = useState("")
 
   const currentUser = users.find((u) => u.isOwner)
-  const isViewOnly = selectedEvent && selectedEvent.userId !== currentUser?.id
+  const isViewOnly = selectedEvent && selectedEvent.userId !== currentUser?.id && selectedEvent.type !== "meetup"
 
   useEffect(() => {
     if (selectedEvent) {

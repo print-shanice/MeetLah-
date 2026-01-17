@@ -72,8 +72,13 @@ export default async function CalendarPage({ params }: CalendarPageProps) {
     })) || [],
   }))
 
-  // Get streak data
-  const streak = data.calendar.calendar_streaks?.[0] || null
+  // Get streak data - handle both array and object formats
+  let streak = null
+  if (Array.isArray(data.calendar.calendar_streaks)) {
+    streak = data.calendar.calendar_streaks[0] || null
+  } else if (data.calendar.calendar_streaks) {
+    streak = data.calendar.calendar_streaks
+  }
 
   return (
     <CalendarApp

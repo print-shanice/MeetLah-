@@ -20,6 +20,8 @@ import {
   joinCalendarByCode,
   markAttendance,
   assignPunishment,
+  setMeetupFrequency,
+  completePunishment,
 } from "@/lib/actions/calendar"
 import type { CalendarView, CalendarStreak } from "@/lib/types"
 
@@ -109,6 +111,24 @@ export function CalendarApp({
   const [showAttendanceModal, setShowAttendanceModal] = useState(false)
   const [showPunishmentModal, setShowPunishmentModal] = useState(false)
   const [visibleUsers, setVisibleUsers] = useState<string[]>(members.map((m) => m.id))
+
+  // Extract all punishments from all events
+  const allPunishments = initialEvents.flatMap(event => 
+    event.punishments.map(p => ({
+      id: p.id,
+      user_id: p.userId,
+      punishment_text: p.punishmentText,
+      assigned_at: p.assignedAt,
+      completed: p.completed,
+      completed_at: p.completedAt,
+      user: {
+        id: p.user.id,
+        full_name: p.user.fullName,
+        email: p.user.email,
+        avatar_url: p.user.avatar,
+      }
+    }))
+  )
 
   // Transform events to the format expected by calendar components
   const transformedEvents = initialEvents.map((event) => {
@@ -208,6 +228,15 @@ export function CalendarApp({
     })
   }
 
+  const handleCompletePunishment = async (punishmentId: string) => {
+    startTransition(async () => {
+      const result = await completePunishment(punishmentId)
+      if (!result.error) {
+        router.refresh()
+      }
+    })
+  }
+
   const handleCreateMeetup = async (meetup: {
     title: string
     date: Date
@@ -239,6 +268,17 @@ export function CalendarApp({
     })
   }
 
+  const handleUpdateFrequency = async (frequency: 'weekly' | 'monthly' | 'yearly') => {
+    startTransition(async () => {
+      const result = await setMeetupFrequency(calendar.id, frequency)
+      if (result.error) {
+        alert('Failed to update frequency: ' + result.error)
+      } else {
+        router.refresh()
+      }
+    })
+  }
+
   const toggleUserVisibility = (userId: string) => {
     setVisibleUsers((prev) => (prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]))
   }
@@ -262,7 +302,7 @@ export function CalendarApp({
 
   const handleJoinCalendar = async (code: string) => {
     startTransition(async () => {
-      const result = await joinCalendarByCode(code)
+      const result = await joinCalendarByCode(code, true)
       if (result.data) {
         router.push(`/calendar/${result.data.id}`)
       }
@@ -293,6 +333,11 @@ export function CalendarApp({
         onJoinCalendar={handleJoinCalendar}
         isPending={isPending}
         streak={streak}
+        isOwner={calendar.ownerId === currentUserId}
+        onUpdateFrequency={handleUpdateFrequency}
+        punishments={allPunishments}
+        currentUserId={currentUserId}
+        onCompletePunishment={handleCompletePunishment}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden">

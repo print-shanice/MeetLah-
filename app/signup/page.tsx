@@ -1,58 +1,14 @@
 "use client"
 
-import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
-import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Calendar, Loader2, AlertCircle, CheckCircle } from "lucide-react"
+import { Calendar, Loader2, AlertCircle } from "lucide-react"
 import { getSupabaseBrowserClient } from "@/lib/supabase/client"
 
 export default function SignupPage() {
-  const router = useRouter()
-
-  const [fullName, setFullName] = useState("")
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState(false)
-
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    setError(null)
-
-    if (password.length < 6) {
-      setError("Password must be at least 6 characters")
-      setLoading(false)
-      return
-    }
-
-    const supabase = getSupabaseBrowserClient()
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        emailRedirectTo: process.env.NEXT_PUBLIC_DEV_SUPABASE_REDIRECT_URL || `${window.location.origin}/calendar`,
-        data: {
-          full_name: fullName,
-        },
-      },
-    })
-
-    if (error) {
-      setError(error.message)
-      setLoading(false)
-      return
-    }
-
-    setSuccess(true)
-    setLoading(false)
-  }
 
   const handleGoogleSignup = async () => {
     setLoading(true)
@@ -71,25 +27,6 @@ export default function SignupPage() {
       setError(error.message)
       setLoading(false)
     }
-  }
-
-  if (success) {
-    return (
-      <main className="min-h-screen bg-background flex items-center justify-center p-4">
-        <div className="w-full max-w-md text-center">
-          <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="h-8 w-8 text-primary" />
-          </div>
-          <h1 className="text-2xl font-bold text-foreground mb-2">Check your email</h1>
-          <p className="text-muted-foreground mb-6">
-            We&apos;ve sent a confirmation link to <strong>{email}</strong>. Click the link to activate your account.
-          </p>
-          <Button variant="outline" onClick={() => router.push("/login")} className="bg-transparent">
-            Back to Login
-          </Button>
-        </div>
-      </main>
-    )
   }
 
   return (
@@ -114,7 +51,7 @@ export default function SignupPage() {
             </div>
           )}
 
-          <Button onClick={handleGoogleSignup} className="w-full bg-transparent" disabled={loading} variant="outline">
+          <Button onClick={handleGoogleSignup} className="w-full" disabled={loading}>
             {loading ? (
               <>
                 <Loader2 className="h-4 w-4 mr-2 animate-spin" />
@@ -144,62 +81,6 @@ export default function SignupPage() {
               </>
             )}
           </Button>
-
-          <form onSubmit={handleSignup} className="space-y-4 mt-6">
-            <div>
-              <Label htmlFor="fullName">Full Name</Label>
-              <Input
-                id="fullName"
-                type="text"
-                value={fullName}
-                onChange={(e) => setFullName(e.target.value)}
-                placeholder="John Doe"
-                className="mt-1"
-                required
-                disabled={loading}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="email">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="mt-1"
-                required
-                disabled={loading}
-              />
-            </div>
-
-            <div>
-              <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Create a password (min 6 characters)"
-                className="mt-1"
-                required
-                minLength={6}
-                disabled={loading}
-              />
-            </div>
-
-            <Button type="submit" className="w-full" disabled={loading}>
-              {loading ? (
-                <>
-                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                  Creating account...
-                </>
-              ) : (
-                "Create Account"
-              )}
-            </Button>
-          </form>
 
           <p className="text-xs text-muted-foreground text-center mt-4">
             By signing up, you agree to our Terms of Service and Privacy Policy

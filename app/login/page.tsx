@@ -90,9 +90,9 @@ export default function LoginPage() {
 
           <div className="mt-6 text-center">
             <p className="text-sm text-muted-foreground">
-              Don&apos;t have an account?{" "}
+              New to MeetLah?{" "}
               <Link href="/signup" className="text-primary hover:underline font-medium">
-                Sign up
+                Get started
               </Link>
             </p>
           </div>

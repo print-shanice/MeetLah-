@@ -33,6 +33,8 @@ export interface CalendarStreak {
   current_streak: number
   longest_streak: number
   last_meetup_month: string | null
+  meetup_frequency: 'weekly' | 'monthly' | 'yearly'
+  target_met: boolean
   created_at: string
   updated_at: string
 }

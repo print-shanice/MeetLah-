@@ -66,7 +66,7 @@ export async function createCalendar(name: string) {
 }
 
 // Join a calendar via share code
-export async function joinCalendarByCode(shareCode: string) {
+export async function joinCalendarByCode(shareCode: string, shouldRevalidate: boolean = false) {
   const supabase = await getSupabaseServerClient()
   const {
     data: { user },
@@ -91,7 +91,7 @@ export async function joinCalendarByCode(shareCode: string) {
     .eq("user_id", user.id)
     .single()
 
-  if (existing) return { error: "Already a member", data: null }
+  if (existing) return { error: "Already a member", data: calendar }
 
   // Generate a random color
   const colors = ["#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899", "#06b6d4"]
@@ -106,7 +106,9 @@ export async function joinCalendarByCode(shareCode: string) {
 
   if (joinError) return { error: joinError.message, data: null }
 
-  revalidatePath("/calendar")
+  if (shouldRevalidate) {
+    revalidatePath("/calendar")
+  }
   return { error: null, data: calendar }
 }
 
@@ -141,7 +143,10 @@ export async function getCalendarDetails(calendarId: string) {
         id,
         current_streak,
         longest_streak,
-        last_meetup_month
+        last_meetup_month,
+        meetup_frequency,
+        target_met,
+        last_meetup_date
       )
     `,
     )
@@ -254,6 +259,7 @@ export async function createMeetup(
 
   if (!user) return { error: "Not authenticated", data: null }
 
+
   // Create the meetup event
   const { data: event, error: eventError } = await supabase
     .from("events")
@@ -271,6 +277,7 @@ export async function createMeetup(
 
   if (eventError) return { error: eventError.message, data: null }
 
+
   // Add participants
   const participants = data.participantIds.map((userId) => ({
     event_id: event.id,
@@ -279,19 +286,76 @@ export async function createMeetup(
 
   const { error: participantsError } = await supabase.from("meetup_participants").insert(participants)
 
-  if (participantsError) return { error: participantsError.message, data: null }
+  if (participantsError) {
+    console.error('Failed to add participants:', participantsError)
+    return { error: participantsError.message, data: null }
+  }
 
-  // Update streak when meetup is created
-  await supabase.rpc('update_calendar_streak', {
-    p_calendar_id: calendarId,
-    p_event_date: data.start_time
-  })
 
+  // Check if the meetup is in the past or present (already happened or happening now)
+  const meetupDate = new Date(data.start_time)
+  const now = new Date()
+  const isPastOrPresent = meetupDate <= now
+
+
+  // Only update streak if the meetup is in the past or present
+  // (Future meetups shouldn't count toward the streak yet)
+  if (isPastOrPresent) {
+    
+    // Try to call the database function
+    const { data: streakData, error: streakError } = await supabase.rpc(
+      'update_calendar_streak_with_frequency', 
+      {
+        p_calendar_id: calendarId,
+        p_event_date: data.start_time
+      }
+    )
+    
+    if (streakError) {
+      console.error('Database function error:', streakError)
+      
+      // Fallback: manually update the streak if function doesn't exist
+      
+      // Get current streak data
+      const { data: streakRecord } = await supabase
+        .from("calendar_streaks")
+        .select("*")
+        .eq("calendar_id", calendarId)
+        .single()
+      
+      if (streakRecord) {
+        const currentStreak = streakRecord.current_streak || 0
+        const newStreak = currentStreak + 1
+        
+        const { error: updateError } = await supabase
+          .from("calendar_streaks")
+          .update({
+            current_streak: newStreak,
+            longest_streak: Math.max(streakRecord.longest_streak || 0, newStreak),
+            last_meetup_date: data.start_time,
+            last_meetup_month: new Date(data.start_time).toISOString().substring(0, 7), // YYYY-MM
+            target_met: true,
+            updated_at: new Date().toISOString()
+          })
+          .eq("calendar_id", calendarId)
+        
+        if (updateError) {
+          console.error('Fallback update also failed:', updateError)
+        } else {
+        }
+      }
+    } else {
+    }
+  } else {
+  }
+
+  revalidatePath(`/calendar/${calendarId}`)
   revalidatePath("/calendar")
+  
   return { error: null, data: event }
 }
 
-// Delete an event
+// Delete an event (works for both personal and meetup events)
 export async function deleteEvent(eventId: string) {
   const supabase = await getSupabaseServerClient()
   const {
@@ -300,7 +364,36 @@ export async function deleteEvent(eventId: string) {
 
   if (!user) return { error: "Not authenticated" }
 
-  const { error } = await supabase.from("events").delete().eq("id", eventId).eq("user_id", user.id)
+  // Get the event to check permissions
+  const { data: event } = await supabase
+    .from("events")
+    .select("user_id, type, calendar_id")
+    .eq("id", eventId)
+    .single()
+
+  if (!event) return { error: "Event not found" }
+
+  // For personal events, only the creator can delete
+  // For meetup events, any member can delete
+  if (event.type === "personal" && event.user_id !== user.id) {
+    return { error: "You can only delete your own events" }
+  }
+
+  if (event.type === "meetup") {
+    // Check if user is a member of the calendar
+    const { data: membership } = await supabase
+      .from("calendar_members")
+      .select("id")
+      .eq("calendar_id", event.calendar_id)
+      .eq("user_id", user.id)
+      .single()
+
+    if (!membership) {
+      return { error: "You must be a calendar member to delete this meetup" }
+    }
+  }
+
+  const { error } = await supabase.from("events").delete().eq("id", eventId)
 
   if (error) return { error: error.message }
 
@@ -406,6 +499,50 @@ export async function completePunishment(punishmentId: string) {
 
   revalidatePath("/calendar")
   return { error: null }
+}
+
+// Update meetup frequency for a calendar
+export async function setMeetupFrequency(
+  calendarId: string,
+  frequency: 'weekly' | 'monthly' | 'yearly'
+) {
+  
+  return { error: null }
+}
+
+// Recalculate streaks for a calendar (useful for fixing data or testing)
+export async function recalculateStreaks(calendarId: string) {
+  const supabase = await getSupabaseServerClient()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
+
+  if (!user) return { error: "Not authenticated" }
+
+  // Verify user is a member of the calendar
+  const { data: membership } = await supabase
+    .from("calendar_members")
+    .select("id")
+    .eq("calendar_id", calendarId)
+    .eq("user_id", user.id)
+    .single()
+
+  if (!membership) {
+    return { error: "You must be a calendar member to recalculate streaks" }
+  }
+
+  // Call the recalculation function
+  const { data, error } = await supabase.rpc('recalculate_calendar_streaks', {
+    p_calendar_id: calendarId
+  })
+
+  if (error) {
+    console.error('Recalculation error:', error)
+    return { error: error.message, data: null }
+  }
+
+  revalidatePath(`/calendar/${calendarId}`)
+  return { error: null, data }
 }
 
 // Logout

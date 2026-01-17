@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input"
 import { Calendar, Share2, Users, Plus, Check, LogOut, ChevronDown, Loader2 } from "lucide-react"
 import { ColorPicker } from "./color-picker"
 import { StreakDisplay } from "./streak-display"
+import { PunishmentCard } from "./punishment-card"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,7 +16,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import type { CalendarStreak } from "@/lib/types"
+import type { CalendarStreak, EventPunishment } from "@/lib/types"
 
 interface User {
   id: string
@@ -40,6 +41,11 @@ interface SidebarProps {
   onJoinCalendar: (code: string) => Promise<any>
   isPending: boolean
   streak: CalendarStreak | null
+  isOwner?: boolean
+  onUpdateFrequency?: (frequency: 'weekly' | 'monthly' | 'yearly') => Promise<void>
+  punishments: EventPunishment[]
+  currentUserId: string
+  onCompletePunishment: (punishmentId: string) => Promise<void>
 }
 
 export function Sidebar({
@@ -58,6 +64,11 @@ export function Sidebar({
   onJoinCalendar,
   isPending,
   streak,
+  isOwner = false,
+  onUpdateFrequency,
+  punishments,
+  currentUserId,
+  onCompletePunishment,
 }: SidebarProps) {
   const [newCalendarName, setNewCalendarName] = useState("")
   const [joinCode, setJoinCode] = useState("")
@@ -179,10 +190,24 @@ export function Sidebar({
         </Button>
       </div>
 
-      <div className="flex-1 p-4 overflow-y-auto space-y-6">
+      <div className="flex-1 p-4 overflow-y-auto space-y-4">
         {/* Streak Display */}
         <div>
-          <StreakDisplay streak={streak} calendarName={calendarName} />
+          <StreakDisplay 
+            streak={streak} 
+            calendarName={calendarName} 
+            isOwner={isOwner}
+            onUpdateFrequency={onUpdateFrequency}
+          />
+        </div>
+
+        {/* Punishment Card */}
+        <div>
+          <PunishmentCard 
+            punishments={punishments}
+            currentUserId={currentUserId}
+            onCompletePunishment={onCompletePunishment}
+          />
         </div>
 
         {/* Members List */}

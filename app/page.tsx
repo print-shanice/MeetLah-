@@ -92,7 +92,7 @@ export default async function Home() {
       {/* Footer */}
       <footer className="border-t border-border py-8">
         <div className="max-w-6xl mx-auto px-4 text-center text-muted-foreground">
-          <p>Built with Next.js, Supabase, and Tailwind CSS</p>
+          <p>Built by Shanice and Kiahna</p>
         </div>
       </footer>
     </main>
