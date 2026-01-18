@@ -37,7 +37,7 @@ Try MeetLah by clicking [here](https://meetlah.vercel.app)
 - Sign in with Google
 
 
-## 🛠️ Tech Stack
+##  Tech Stack
 
 - **Frontend:** Next.js 16, React 19
 - **Styling:** Tailwind CSS 4
@@ -47,7 +47,7 @@ Try MeetLah by clicking [here](https://meetlah.vercel.app)
 - **Deployment:** Vercel
 
 
-## 📖 How to Use
+##  How to Use
 
 ### Creating Your First Calendar
 1. Sign up or log in with Google
