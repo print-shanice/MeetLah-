@@ -17,7 +17,7 @@ export default async function CalendarPage() {
 
   // If no calendars exist, create a default one
   if (!calendars || calendars.length === 0) {
-    const { data: newCalendar } = await createCalendar("My Shared Calendar")
+    const { data: newCalendar } = await createCalendar("My Shared Calendar", false)
     if (newCalendar) {
       redirect(`/calendar/${newCalendar.id}`)
     }

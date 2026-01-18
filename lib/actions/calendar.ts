@@ -35,7 +35,7 @@ export async function getUserCalendars() {
 }
 
 // Create a new calendar
-export async function createCalendar(name: string) {
+export async function createCalendar(name: string, shouldRevalidate: boolean = true) {
   const supabase = await getSupabaseServerClient()
   const {
     data: { user },
@@ -61,7 +61,9 @@ export async function createCalendar(name: string) {
 
   if (memberError) return { error: memberError.message, data: null }
 
-  revalidatePath("/calendar")
+  if (shouldRevalidate) {
+    revalidatePath("/calendar")
+  }
   return { error: null, data: calendar }
 }
 
