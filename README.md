@@ -2,37 +2,40 @@
 
 A web application designed to simplify the process of making plans with your friends. Track availability, create shared calendars, maintain monthly streaks, and ensure everyone arrives on time with the **Punctuality Punisher**!
 
-## ✨ Features
+## Try it Out!
+Try MeetLah by clicking [here](https://meetlah.vercel.app)
 
-### 📅 Shared Calendar
+
+##  Features
+
+###  Shared Calendar
 - Create shared calendars with friends
 - Add personal events to your schedule
 - Toggle between month, week, and day views
 - Color-coded events for each member
 - Share calendars via invite links
 
-### 🔍 Availability Tracking
+###  Availability Tracking
 - View when all members are free
 - Create meetup events on available dates
 - Automatic clash detection
 - Specify time and location for meetups
 
-### 🔥 Monthly Streak System
-- Track consecutive months of meetups
+### Streak System
+- Set target goal for meeting your friends
 - Visual streak counter with achievements
 - Motivates regular face-to-face meetings
 - View longest streak records
 
-### ⏰ Punctuality Punisher
+###  Punctuality Punisher
 - Mark who was late to each meetup
 - Randomly assigned punishments for latecomers
 - Fun and creative punishment ideas
 - Track punishment completion
 
-### 🔐 Authentication
+###  Authentication
 - Sign in with Google
-- Sign in with Facebook
-- Secure authentication via Supabase
+
 
 ## 🛠️ Tech Stack
 
@@ -47,7 +50,7 @@ A web application designed to simplify the process of making plans with your fri
 ## 📖 How to Use
 
 ### Creating Your First Calendar
-1. Sign up or log in with Google/Facebook
+1. Sign up or log in with Google
 2. Click "Create New Calendar" in the sidebar
 3. Give your calendar a name
 4. Share the invite code with friends!
@@ -80,12 +83,5 @@ A web application designed to simplify the process of making plans with your fri
 - The sidebar shows your current streak and achievements
 - Streaks reset if you skip a month
 
-## 🎮 Punishment Examples
 
-The app includes 20+ creative punishments for latecomers:
-- Buy everyone bubble tea 🧋
-- Do 20 push-ups right now 💪
-- Share an embarrassing story 😳
-- Sing a song of the group's choice 🎤
-- And many more!
 
