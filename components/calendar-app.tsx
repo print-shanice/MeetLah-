@@ -130,13 +130,7 @@ export function CalendarApp({
     }))
   )
 
-  // Debug logging for punishments
-  console.log('=== PUNISHMENT DEBUG ===')
-  console.log('Initial events count:', initialEvents.length)
-  console.log('All punishments extracted:', allPunishments.length)
-  console.log('Current user ID:', currentUserId)
-  console.log('User punishments:', allPunishments.filter(p => p.user_id === currentUserId))
-  console.log('========================')
+
 
   // Transform events to the format expected by calendar components
   const transformedEvents = initialEvents.map((event) => {
@@ -202,15 +196,7 @@ export function CalendarApp({
   }
 
   const handleEventClick = (event: any) => {
-    console.log('=== EVENT CLICK DEBUG ===')
-    console.log('Clicked event:', event)
-    console.log('Event type:', event.type)
-    console.log('Event end date:', event.endDate)
-    console.log('Current time:', new Date())
-    console.log('Is past?:', event.endDate < new Date())
-    
     const originalEvent = initialEvents.find((e) => e.id === event.id)
-    console.log('Found original event:', originalEvent)
     
     if (originalEvent) {
       setSelectedEvent(originalEvent)
@@ -220,23 +206,14 @@ export function CalendarApp({
       const now = new Date()
       const eventEnd = new Date(originalEvent.endTime)
       
-      console.log('Original event type:', originalEvent.type)
-      console.log('Original event end time:', originalEvent.endTime)
-      console.log('Event end date object:', eventEnd)
-      console.log('Is meetup?:', originalEvent.type === "meetup")
-      console.log('Has ended?:', eventEnd < now)
-      
       if (originalEvent.type === "meetup" && eventEnd < now) {
-        console.log('✅ Opening Attendance Modal')
         setShowAttendanceModal(true)
         setShowEventModal(false)
       } else {
-        console.log('Opening Event Modal')
         setShowEventModal(true)
         setShowAttendanceModal(false)
       }
     }
-    console.log('========================')
   }
 
   const handleMarkAttendance = async (participantId: string, wasLate: boolean) => {
@@ -251,18 +228,12 @@ export function CalendarApp({
   const handleAssignPunishment = async (userId: string, punishment: string) => {
     if (!selectedEvent) return
     
-    console.log('=== ASSIGNING PUNISHMENT ===')
-    console.log('Event ID:', selectedEvent.id)
-    console.log('User ID:', userId)
-    console.log('Punishment:', punishment)
-    
     startTransition(async () => {
       const result = await assignPunishment(selectedEvent.id, userId, punishment)
       if (!result.error) {
-        console.log('✅ Punishment assigned successfully')
         router.refresh()
       } else {
-        console.error('❌ Failed to assign punishment:', result.error)
+        console.error('Failed to assign punishment:', result.error)
       }
     })
   }
