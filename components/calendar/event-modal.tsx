@@ -57,7 +57,11 @@ export function EventModal({
     if (selectedEvent) {
       setTitle(selectedEvent.title)
       const eventDate = new Date(selectedEvent.date)
-      setDate(eventDate.toISOString().split("T")[0])
+      // Format date in local timezone to avoid UTC conversion issues
+      const year = eventDate.getFullYear()
+      const month = String(eventDate.getMonth() + 1).padStart(2, "0")
+      const day = String(eventDate.getDate()).padStart(2, "0")
+      setDate(`${year}-${month}-${day}`)
       setStartTime(
         eventDate.toLocaleTimeString("en-US", {
           hour: "2-digit",
@@ -75,7 +79,11 @@ export function EventModal({
       )
       setLocation(selectedEvent.location || "")
     } else if (selectedDate) {
-      setDate(selectedDate.toISOString().split("T")[0])
+      // Format date in local timezone to avoid UTC conversion issues
+      const year = selectedDate.getFullYear()
+      const month = String(selectedDate.getMonth() + 1).padStart(2, "0")
+      const day = String(selectedDate.getDate()).padStart(2, "0")
+      setDate(`${year}-${month}-${day}`)
       const hours = selectedDate.getHours()
       if (hours > 0) {
         setStartTime(`${hours.toString().padStart(2, "0")}:00`)
